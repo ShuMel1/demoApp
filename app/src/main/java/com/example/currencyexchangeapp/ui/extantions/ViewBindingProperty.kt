@@ -13,10 +13,9 @@ import kotlin.reflect.KProperty
 
 /**
 * this id delegate property for fragments view binding
-* its incapsulate the boiler plate code for fragment lifecycle...
+* its encapsulate the boiler plate code for fragment lifecycle
 *
 * it is track the R type lifecycle and onDestroy set null the view binding instance (of type T )
- * created by Eddy (I use this function as helper)
 * */
 abstract class ViewBindingProperty<in R, T : ViewBinding>(
     private val viewBinder: (R) -> T

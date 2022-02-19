@@ -1,11 +1,11 @@
 package com.example.currencyexchangeapp.data
 
+import com.example.currencyexchangeapp.BuildConfig
 import com.example.currencyexchangeapp.data.entity.CashAmount
 import com.example.currencyexchangeapp.data.entity.Currency
 
-//todo move to buildConfig
-const val base_url = "http://api.exchangeratesapi.io/v1/"
-const val access_key = "d21b3097bdb299eaddfa683174f82aa8"
+const val base_url = BuildConfig.BASE_URL
+const val access_key = "fc9659bb7e0531e5e44770563aa72991" // todo need to be updated every day
 
 const val TAG = "CurrencyExchange"
 

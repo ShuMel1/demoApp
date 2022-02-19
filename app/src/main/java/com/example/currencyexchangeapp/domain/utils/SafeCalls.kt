@@ -21,8 +21,8 @@ inline fun <reified RESPONSE, RESULT> safeApiCall(
                 emit(Resource.Success(mapper.map(it, convertingKey)))
             } ?: emit(Resource.Error(null, Exception(response.message()), response.code()))
         } else {
-            emit(Resource.Error(null, Exception("Cannot fetch data"), response.code()))
-            onFetchFailed.invoke(Exception("Cannot fetch data"))
+            emit(Resource.Error(null, Exception(response.message()), response.code()))
+            onFetchFailed.invoke(Exception(response.message()))
         }
     } catch (e: Exception) {
         emit(Resource.Error(null, e))
@@ -42,8 +42,8 @@ inline fun <reified RESPONSE> safeApiCall(
                 emit(Resource.Success(it))
             } ?: emit(Resource.Error(null, Exception(response.message()), response.code()))
         } else {
-            emit(Resource.Error(null, Exception("Cannot fetch data"), response.code()))
-            onFetchFailed.invoke(Exception("Cannot fetch data"))
+            emit(Resource.Error(null, Exception(response.message()), response.code()))
+            onFetchFailed.invoke(Exception(response.message()))
         }
     } catch (e: Exception) {
         emit(Resource.Error(null, e))

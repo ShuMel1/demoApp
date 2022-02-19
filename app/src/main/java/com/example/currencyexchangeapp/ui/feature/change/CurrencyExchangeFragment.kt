@@ -9,22 +9,22 @@ import androidx.lifecycle.MutableLiveData
 import com.example.currencyexchangeapp.R
 import com.example.currencyexchangeapp.data.entity.CashAmount
 import com.example.currencyexchangeapp.data.entity.Currency
+import com.example.currencyexchangeapp.data.entity.LatestRatesEntity
 import com.example.currencyexchangeapp.databinding.CurrencyChangeFragmentBinding
+import com.example.currencyexchangeapp.domain.utils.Event
 import com.example.currencyexchangeapp.ui.common.BaseFragment
+import com.example.currencyexchangeapp.ui.dialog.AppDialogFragment
 import com.example.currencyexchangeapp.ui.extantions.viewBinding
-import com.example.currencyexchangeapp.ui.feature.main.MainSharedViewModel
 import kotlinx.coroutines.Job
-import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
-
-const val def_amount = 1000
 
 class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment) {
 
     private lateinit var repeatableJob: Job
     override val viewModel: CurrencyExchangeViewModel by viewModel()
-    private val sharedViewModel: MainSharedViewModel by sharedViewModel()
     private val viewBinding: CurrencyChangeFragmentBinding by viewBinding()
+    private var latestRate: LatestRatesEntity? = null
+    private lateinit var dialog: AppDialogFragment
 
     override fun initViews() {
         super.initViews()
@@ -32,7 +32,6 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
         viewModel.getSellCurrencies()
         viewModel.getReceiveCurrencies()
         viewModel.getBaseCurrAmount()
-        repeatableJob = viewModel.getLatestRateForSelectedCurrency()
 
         initSpinnerAdapter(listOf(def_sell_curr), viewBinding.sellCurrencySp)
         initSpinnerAdapter(emptyList(), viewBinding.receiveCurrencySp)
@@ -57,18 +56,31 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
     override fun bindData() {
         super.bindData()
         viewModel.currencyLiveData.observe(viewLifecycleOwner) {
-            viewBinding.currencyRate.text = it.rateForSelected.toString()
+            when (it) {
+                is Event.LatestRatesEntityErrorEvent -> {
+                    if (::repeatableJob.isInitialized) repeatableJob.cancel()
+                    showDialog(getString(R.string.error), it.messageText)
+                }
+                is Event.LatestRatesEntitySuccessEvent -> {
+                    latestRate = it.data
+                    viewBinding.currencyRate.text = latestRate?.rateForSelected.toString()
+                    updateReceiveAmount()
+                }
+            }
         }
         viewModel.selectedReceiveCurr.observe(viewLifecycleOwner) {
-            repeatableJob.cancel()
+            if (::repeatableJob.isInitialized) repeatableJob.cancel()
             repeatableJob = viewModel.getLatestRateForSelectedCurrency()
+            viewModel.getReceiveCurrAmount()
         }
         viewModel.selectedSellCurr.observe(viewLifecycleOwner) {
-            repeatableJob.cancel()
-            repeatableJob = viewModel.getLatestRateForSelectedCurrency()
+            // The API restriction in free subscription plan
+//            if (::repeatableJob.isInitialized) repeatableJob.cancel()
+//            repeatableJob = viewModel.getLatestRateForSelectedCurrency()
         }
-        viewModel.userCurrencies.observe(viewLifecycleOwner) { currencies ->
-//            initSpinnerAdapter(currencies.map { it.code }, viewBinding.sellCurrencySp)  // todo The API you provided does not allow to change base currency in free subscription plan
+        viewModel.userCurrencies.observe(viewLifecycleOwner) {
+            // The API restriction in free subscription plan
+//            initSpinnerAdapter(currencies.map { it.code }, viewBinding.sellCurrencySp)
         }
         viewModel.allCurrencies.observe(viewLifecycleOwner) { currencies ->
             initSpinnerAdapter(currencies.map { it.code }, viewBinding.receiveCurrencySp)
@@ -79,50 +91,87 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
         super.initListeners()
         with(viewBinding) {
             submitBtn.setOnClickListener {
-                if (hasNoEmptyFields() && isCashAvailable()) { //todo clear edit texts after submitting
-                    val sellCashAmount = CashAmount(
-                        getExpectedRemainingBalance() ,
-                        Currency.getCurrency(sellCurrencySp.selectedItem.toString())
+                if (hasNoEmptyFields()) {
+                    if (isNotTheSameCurrency()) {
+                        if (isCashAvailable()) {
+                            val sellCashAmount = CashAmount(
+                                getExpectedRemainingBalance(),
+                                Currency.getCurrency(sellCurrencySp.selectedItem.toString())
+                            )
+                            val receiveCashAmount = CashAmount(
+                                getExpectedBecomingBalance(),
+                                Currency.getCurrency(receiveCurrencySp.selectedItem.toString())
+                            )
+                            viewModel.submitSale(sellCashAmount, receiveCashAmount)
+                            showSuccessMessage()
+                            clearFields()
+                        } else showDialog(
+                            getString(R.string.error),
+                            getString(R.string.invalid_amount)
+                        )
+                    } else showDialog(
+                        getString(R.string.error),
+                        getString(R.string.same_currency_error)
                     )
-                    val receiveCashAmount = CashAmount(
-                        receiveEdit.text.toString().toDouble(),
-                        Currency.getCurrency(receiveCurrencySp.selectedItem.toString())
-                    )
-                    viewModel.submitSale(sellCashAmount, receiveCashAmount)
-                    clearFields()
-                }
+                } else showDialog(getString(R.string.error), getString(R.string.empty_field))
             }
+            // The API restriction in free subscription plan
 //            sellCurrencySp.onItemSelectedListener =
-//                onItemSelectedListener(viewModel.selectedSellCurr)   // todo The API you provided does not allow to change base currency in free subscription plan
+//                onItemSelectedListener(viewModel.selectedSellCurr)
+
             sellCurrencySp.isEnabled = false
             receiveCurrencySp.onItemSelectedListener =
                 onItemSelectedListener(viewModel.selectedReceiveCurr)
-            sellEdit.doOnTextChanged { text, start, before, count ->
+            sellEdit.doOnTextChanged { text, _, _, _ ->
                 text?.let {
                     if (text.isNotEmpty()) {
-                        viewModel.currencyLiveData.value?.let {
-                            val amount: Double = it.rateForSelected * text.toString().toDouble()
+                        latestRate?.let {
+                            val amount: Double =
+                                it.rateForSelected * text.toString().toDouble()
                             receiveEdit.setText(amount.toString())
                         }
-                    }
+                    } else receiveEdit.setText("")
                 }
-
             }
         }
     }
 
-    //todo update receiveEdit after receiveSp change
+
+    private fun showSuccessMessage() {
+        with(viewBinding) {
+            val sellStr = sellEdit.text.toString() + " " + sellCurrencySp.selectedItem.toString()
+            val receiveStr =
+                receiveEdit.text.toString() + " " + receiveCurrencySp.selectedItem.toString()
+            showDialog(
+                getString(R.string.success_title),
+                getString(R.string.success_message, sellStr, receiveStr)
+            )
+
+        }
+    }
+
+    private fun showDialog(title: String, message: String) {
+        if (::dialog.isInitialized) dialog.dismiss()
+        dialog = AppDialogFragment.newInstance(title, message)
+        dialog.show(childFragmentManager, AppDialogFragment.TAG)
+    }
+
+    private fun isNotTheSameCurrency(): Boolean =
+        viewModel.selectedSellCurr.value != viewModel.selectedReceiveCurr.value
 
     private fun clearFields() {
-        with(viewBinding){
+        with(viewBinding) {
             sellEdit.setText("")
             receiveEdit.setText("")
         }
     }
 
     private fun isCashAvailable(): Boolean {
-        return  getExpectedRemainingBalance() > 0
+        return getExpectedRemainingBalance() >= 0
     }
+
+    private fun getExpectedBecomingBalance() =
+        viewBinding.receiveEdit.text.toString().toDouble() + viewModel.receiveCurrAmount.value!!
 
     private fun getExpectedRemainingBalance() =
         viewModel.baseCurrAmount.value!! - viewBinding.sellEdit.text.toString().toDouble()
@@ -144,4 +193,17 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
         }
+
+    private fun updateReceiveAmount() {
+        with(viewBinding) {
+            sellEdit.text.toString().let { text ->
+                if (text.isNotEmpty()) {
+                    latestRate?.let {
+                        val amount: Double = it.rateForSelected * text.toDouble()
+                        receiveEdit.setText(amount.toString())
+                    }
+                } else receiveEdit.setText("")
+            }
+        }
+    }
 }

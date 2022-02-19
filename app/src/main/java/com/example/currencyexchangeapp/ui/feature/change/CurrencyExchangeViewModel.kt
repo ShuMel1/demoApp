@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.currencyexchangeapp.data.TAG
 import com.example.currencyexchangeapp.data.entity.CashAmount
 import com.example.currencyexchangeapp.data.entity.Currency
-import com.example.currencyexchangeapp.data.entity.LatestRatesEntity
 import com.example.currencyexchangeapp.domain.usecase.CurrencyUseCase
 import com.example.currencyexchangeapp.domain.usecase.MainUseCase
+import com.example.currencyexchangeapp.domain.utils.Event
 import com.example.currencyexchangeapp.domain.utils.Resource
 import com.example.currencyexchangeapp.ui.common.BaseViewModel
 import kotlinx.coroutines.*
@@ -20,13 +20,17 @@ import kotlinx.coroutines.flow.onEach
 const val def_sell_curr = "EUR"
 const val def_receive_curr = "USD"
 
-class CurrencyExchangeViewModel(private val useCase: CurrencyUseCase , private val mainUseCase: MainUseCase) : BaseViewModel() {
-    val currencyLiveData = MutableLiveData<LatestRatesEntity>() // todo change with events
-    val selectedSellCurr = MutableLiveData<String>()
-    val selectedReceiveCurr = MutableLiveData<String>()
+class CurrencyExchangeViewModel(
+    private val useCase: CurrencyUseCase,
+    private val mainUseCase: MainUseCase
+) : BaseViewModel() {
+    val currencyLiveData = MutableLiveData<Event<*>>()
+    val selectedSellCurr = MutableLiveData<String>().apply { postValue(def_sell_curr) }
+    val selectedReceiveCurr = MutableLiveData<String>().apply { postValue(def_receive_curr) }
     val userCurrencies = MutableLiveData<List<Currency>>()
     val allCurrencies = MutableLiveData<List<Currency>>()
     val baseCurrAmount = MutableLiveData<Double>()
+    val receiveCurrAmount = MutableLiveData<Double>().apply { postValue(0.0) }
 
     fun getLatestRateForSelectedCurrency() =
         viewModelScope.launch {
@@ -40,13 +44,10 @@ class CurrencyExchangeViewModel(private val useCase: CurrencyUseCase , private v
                     }.flowOn(Dispatchers.IO).onEach {
                         when (it) {
                             is Resource.Error -> {
-                                // todo
+                                currencyLiveData.postValue(Event.LatestRatesEntityErrorEvent(it.exception.message!!))
                             }
                             is Resource.Success -> {
-                                currencyLiveData.postValue(it.data!!)
-                            }
-                            is Resource.Loading -> {
-                                // todo
+                                currencyLiveData.postValue(Event.LatestRatesEntitySuccessEvent(it.data!!))
                             }
                         }
                     }.flowOn(Dispatchers.Main).launchIn(viewModelScope)
@@ -82,7 +83,11 @@ class CurrencyExchangeViewModel(private val useCase: CurrencyUseCase , private v
     fun getBaseCurrAmount() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                mainUseCase.getCurrAmount(Currency.getCurrency(selectedSellCurr.value ?: def_sell_curr))
+                mainUseCase.getCurrAmount(
+                    Currency.getCurrency(
+                        selectedSellCurr.value ?: def_sell_curr
+                    )
+                )
                     .catch {
                         Log.d(TAG, "getCurrAmount error message: ${it.message}")
                     }.flowOn(Dispatchers.IO).onEach {
@@ -92,10 +97,27 @@ class CurrencyExchangeViewModel(private val useCase: CurrencyUseCase , private v
         }
     }
 
+    fun getReceiveCurrAmount() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) {
+                mainUseCase.getCurrAmount(
+                    Currency.getCurrency(
+                        selectedReceiveCurr.value ?: def_receive_curr
+                    )
+                )
+                    .catch {
+                        Log.d(TAG, "getCurrAmount error message: ${it.message}")
+                    }.flowOn(Dispatchers.IO).onEach {
+                        receiveCurrAmount.postValue(it)
+                    }.flowOn(Dispatchers.Main).launchIn(viewModelScope)
+            }
+        }
+    }
+
     fun insertInitialValues() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                mainUseCase.insertInitialBalance() // todo update
+                mainUseCase.insertInitialBalance()
                 getSellCurrencies()
             }
         }
