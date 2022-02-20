@@ -12,4 +12,6 @@ interface BalanceLocalDataSource {
     fun getAllCurrencies(): Flow<List<Currency>>
     fun getAllCash(): Flow<List<CashAmount>>
     fun getCashAmount(currency: Currency): Flow<Double>
+    fun getRemainingFreeTransactionsCount(): Int
+    fun setRemainingFreeTransactionsCount(count: Int)
 }

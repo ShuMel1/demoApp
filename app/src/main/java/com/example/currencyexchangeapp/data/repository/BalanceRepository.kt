@@ -11,4 +11,7 @@ interface BalanceRepository {
     fun getCashAmount(currency: Currency): Flow<Double>
     suspend fun resetBalanceToDefault()
     suspend fun insertCashAmount(cashAmount: CashAmount)
+    suspend fun insertAll(cashAmounts: List<CashAmount>)
+    fun getRemainingFreeTransactionsCount():Int
+    fun setRemainingFreeTransactionsCount(count: Int)
 }

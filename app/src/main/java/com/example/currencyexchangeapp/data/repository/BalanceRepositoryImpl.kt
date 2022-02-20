@@ -19,6 +19,17 @@ class BalanceRepositoryImpl(private val localDataSource: BalanceLocalDataSource)
         localDataSource.insertCashAmount(cashAmount)
     }
 
+    override suspend fun insertAll(cashAmounts: List<CashAmount>) {
+        localDataSource.insertAll(cashAmounts)
+    }
+
+    override fun getRemainingFreeTransactionsCount(): Int =
+        localDataSource.getRemainingFreeTransactionsCount()
+
+    override fun setRemainingFreeTransactionsCount(count: Int) {
+        localDataSource.setRemainingFreeTransactionsCount(count)
+    }
+
     override fun getAllCurrencies(): Flow<List<Currency>> =
         localDataSource.getAllCurrencies()
 

@@ -6,7 +6,7 @@ import com.example.currencyexchangeapp.data.BALANCE_TABLE_NAME
 @Entity(tableName = BALANCE_TABLE_NAME)
 data class CashAmount(
     @ColumnInfo(name = "amount")
-    val amount: Double,
+    var amount: Double,
 
     @ColumnInfo(name = "currency")
     @PrimaryKey

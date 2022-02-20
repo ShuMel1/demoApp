@@ -14,6 +14,7 @@ import com.example.currencyexchangeapp.databinding.CurrencyChangeFragmentBinding
 import com.example.currencyexchangeapp.domain.utils.Event
 import com.example.currencyexchangeapp.ui.common.BaseFragment
 import com.example.currencyexchangeapp.ui.dialog.AppDialogFragment
+import com.example.currencyexchangeapp.ui.extantions.round
 import com.example.currencyexchangeapp.ui.extantions.viewBinding
 import kotlinx.coroutines.Job
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -55,6 +56,10 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
 
     override fun bindData() {
         super.bindData()
+        viewModel.commissionFee.observe(viewLifecycleOwner) { commission ->
+            showSuccessMessage(commission.first.toString() + " " + commission.second)
+            clearFields()
+        }
         viewModel.currencyLiveData.observe(viewLifecycleOwner) {
             when (it) {
                 is Event.LatestRatesEntityErrorEvent -> {
@@ -63,7 +68,7 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
                 }
                 is Event.LatestRatesEntitySuccessEvent -> {
                     latestRate = it.data
-                    viewBinding.currencyRate.text = latestRate?.rateForSelected.toString()
+                    viewBinding.currencyRate.text = latestRate?.rateForSelected?.round(2).toString()
                     updateReceiveAmount()
                 }
             }
@@ -103,8 +108,6 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
                                 Currency.getCurrency(receiveCurrencySp.selectedItem.toString())
                             )
                             viewModel.submitSale(sellCashAmount, receiveCashAmount)
-                            showSuccessMessage()
-                            clearFields()
                         } else showDialog(
                             getString(R.string.error),
                             getString(R.string.invalid_amount)
@@ -128,7 +131,7 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
                         latestRate?.let {
                             val amount: Double =
                                 it.rateForSelected * text.toString().toDouble()
-                            receiveEdit.setText(amount.toString())
+                            receiveEdit.setText(amount.round(2).toString())
                         }
                     } else receiveEdit.setText("")
                 }
@@ -137,16 +140,15 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
     }
 
 
-    private fun showSuccessMessage() {
+    private fun showSuccessMessage(commission: String) {
         with(viewBinding) {
             val sellStr = sellEdit.text.toString() + " " + sellCurrencySp.selectedItem.toString()
             val receiveStr =
                 receiveEdit.text.toString() + " " + receiveCurrencySp.selectedItem.toString()
             showDialog(
                 getString(R.string.success_title),
-                getString(R.string.success_message, sellStr, receiveStr)
+                getString(R.string.success_message, sellStr, receiveStr, commission)
             )
-
         }
     }
 
@@ -177,7 +179,7 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
         viewModel.baseCurrAmount.value!! - viewBinding.sellEdit.text.toString().toDouble()
 
     private fun hasNoEmptyFields(): Boolean = viewBinding.sellEdit.text?.isNotEmpty() ?: false
-            && viewBinding.receiveEdit.text?.isNotEmpty() ?: false
+            && viewBinding.receiveEdit.text?.isNotEmpty() ?: false && viewBinding.sellEdit.text?.toString()?.toDouble() != 0.0
 
     private fun onItemSelectedListener(selectedCurrency: MutableLiveData<String>) =
         object : AdapterView.OnItemSelectedListener {
@@ -200,7 +202,7 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
                 if (text.isNotEmpty()) {
                     latestRate?.let {
                         val amount: Double = it.rateForSelected * text.toDouble()
-                        receiveEdit.setText(amount.toString())
+                        receiveEdit.setText(amount.round(2).toString())
                     }
                 } else receiveEdit.setText("")
             }

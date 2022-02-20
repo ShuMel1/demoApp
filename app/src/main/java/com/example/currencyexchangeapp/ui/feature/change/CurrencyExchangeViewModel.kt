@@ -4,6 +4,9 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.currencyexchangeapp.data.TAG
+import com.example.currencyexchangeapp.data.commission
+import com.example.currencyexchangeapp.data.defFreeTransactionsCount
+import com.example.currencyexchangeapp.data.defaultCashAmounts
 import com.example.currencyexchangeapp.data.entity.CashAmount
 import com.example.currencyexchangeapp.data.entity.Currency
 import com.example.currencyexchangeapp.domain.usecase.CurrencyUseCase
@@ -30,6 +33,7 @@ class CurrencyExchangeViewModel(
     val userCurrencies = MutableLiveData<List<Currency>>()
     val allCurrencies = MutableLiveData<List<Currency>>()
     val baseCurrAmount = MutableLiveData<Double>()
+    val commissionFee = MutableLiveData<Pair<Double, String>>()
     val receiveCurrAmount = MutableLiveData<Double>().apply { postValue(0.0) }
 
     fun getLatestRateForSelectedCurrency() =
@@ -117,7 +121,8 @@ class CurrencyExchangeViewModel(
     fun insertInitialValues() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                mainUseCase.insertInitialBalance()
+                mainUseCase.updateCashes(defaultCashAmounts)
+                mainUseCase.setFreeTransactions(defFreeTransactionsCount)
                 getSellCurrencies()
             }
         }
@@ -127,8 +132,16 @@ class CurrencyExchangeViewModel(
     fun submitSale(sellCashAmount: CashAmount, receiveCashAmount: CashAmount) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                mainUseCase.updateCash(sellCashAmount)
-                mainUseCase.updateCash(receiveCashAmount)
+                if (mainUseCase.hasFreeTransactionsCount()) {
+                    mainUseCase.updateCashes(listOf(sellCashAmount, receiveCashAmount))
+                    commissionFee.postValue(Pair(0.0, receiveCashAmount.currency.code))
+                    mainUseCase.decreaseRemainingFreeTransactionsCount()
+                } else {
+                    val commissionAmount = mainUseCase.countCommission(receiveCashAmount)
+                    receiveCashAmount.amount = receiveCashAmount.amount - commissionAmount
+                    mainUseCase.updateCashes(listOf(sellCashAmount, receiveCashAmount))
+                    commissionFee.postValue(Pair(commissionAmount, receiveCashAmount.currency.code))
+                }
             }
         }
     }

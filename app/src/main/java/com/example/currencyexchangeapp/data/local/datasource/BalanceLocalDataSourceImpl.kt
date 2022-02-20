@@ -1,11 +1,17 @@
 package com.example.currencyexchangeapp.data.local.datasource
 
+import android.content.SharedPreferences
 import com.example.currencyexchangeapp.data.entity.CashAmount
 import com.example.currencyexchangeapp.data.entity.Currency
 import com.example.currencyexchangeapp.data.local.room.BalanceDao
 import kotlinx.coroutines.flow.Flow
 
-class BalanceLocalDataSourceImpl(private val balanceDao: BalanceDao) : BalanceLocalDataSource {
+private const val free_transaction_count_key = "free_transaction_count_key"
+
+class BalanceLocalDataSourceImpl(
+    private val sharedPreferences: SharedPreferences,
+    private val balanceDao: BalanceDao
+) : BalanceLocalDataSource {
     override fun getAvailableCurrencies(): Flow<List<Currency>> =
         balanceDao.getAvailableCurrencies()
 
@@ -29,5 +35,12 @@ class BalanceLocalDataSourceImpl(private val balanceDao: BalanceDao) : BalanceLo
 
     override fun getCashAmount(currency: Currency): Flow<Double> =
         balanceDao.getCashAmount(currency)
+
+    override fun getRemainingFreeTransactionsCount(): Int =
+        sharedPreferences.getInt(free_transaction_count_key, 0)
+
+    override fun setRemainingFreeTransactionsCount(count: Int) {
+        sharedPreferences.edit().putInt(free_transaction_count_key, count).apply()
+    }
 
 }

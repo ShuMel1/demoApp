@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.currencyexchangeapp.data.entity.CashAmount
 import com.example.currencyexchangeapp.databinding.ItemBalanceListBinding
+import com.example.currencyexchangeapp.ui.extantions.round
 
 class BalanceRvAdapter :
     ListAdapter<CashAmount, BalanceRvAdapter.BalanceViewHolder>(DiffCallBack()) {
@@ -30,7 +31,7 @@ class BalanceRvAdapter :
 
         fun bind(cashAmount: CashAmount) {
             binding.apply {
-                cashAmountTxt.text = cashAmount.amount.toString()
+                cashAmountTxt.text = cashAmount.amount.round(2).toString()
                 cashNameTxt.text = cashAmount.currency.code
             }
         }

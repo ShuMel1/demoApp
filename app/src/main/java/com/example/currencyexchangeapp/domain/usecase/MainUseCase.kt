@@ -10,4 +10,9 @@ interface MainUseCase {
     fun getCurrAmount(currency: Currency): Flow<Double>
     suspend fun insertInitialBalance()
     suspend fun updateCash(cashAmount: CashAmount)
+    suspend fun updateCashes(cashAmounts: List<CashAmount>)
+    fun hasFreeTransactionsCount(): Boolean
+    fun setFreeTransactions(count: Int)
+    fun decreaseRemainingFreeTransactionsCount()
+    fun countCommission(cashAmount: CashAmount): Double
 }
