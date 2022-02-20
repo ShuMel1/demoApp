@@ -30,6 +30,13 @@ class BalanceRepositoryImpl(private val localDataSource: BalanceLocalDataSource)
         localDataSource.setRemainingFreeTransactionsCount(count)
     }
 
+    override fun isInitialBalanceSet(): Boolean =
+        localDataSource.isInitialBalanceSet()
+
+    override fun setInitialBalanceSet(b: Boolean) {
+        localDataSource.setInitialBalanceSet(b)
+    }
+
     override fun getAllCurrencies(): Flow<List<Currency>> =
         localDataSource.getAllCurrencies()
 

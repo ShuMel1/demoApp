@@ -1,7 +1,6 @@
 package com.example.currencyexchangeapp.domain.usecase
 
 import com.example.currencyexchangeapp.data.commission
-import com.example.currencyexchangeapp.data.defFreeTransactionsCount
 import com.example.currencyexchangeapp.data.entity.CashAmount
 import com.example.currencyexchangeapp.data.entity.Currency
 import com.example.currencyexchangeapp.data.repository.BalanceRepository
@@ -44,5 +43,13 @@ class MainUseCaseImpl(private val repository: BalanceRepository) : MainUseCase {
 
     override fun countCommission(cashAmount: CashAmount): Double =
         cashAmount.amount.countPercent(commission).round(2)
+
+    override fun isInitialBalanceSet(): Boolean =
+        repository.isInitialBalanceSet()
+
+
+    override fun setInitialBalanceSet(b: Boolean) {
+        repository.setInitialBalanceSet(b)
+    }
 
 }

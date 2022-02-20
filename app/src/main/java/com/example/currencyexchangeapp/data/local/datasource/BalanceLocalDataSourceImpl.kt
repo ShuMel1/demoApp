@@ -7,6 +7,7 @@ import com.example.currencyexchangeapp.data.local.room.BalanceDao
 import kotlinx.coroutines.flow.Flow
 
 private const val free_transaction_count_key = "free_transaction_count_key"
+private const val is_balance_initialized_key = "is_balance_initialized_key"
 
 class BalanceLocalDataSourceImpl(
     private val sharedPreferences: SharedPreferences,
@@ -41,6 +42,13 @@ class BalanceLocalDataSourceImpl(
 
     override fun setRemainingFreeTransactionsCount(count: Int) {
         sharedPreferences.edit().putInt(free_transaction_count_key, count).apply()
+    }
+
+    override fun isInitialBalanceSet(): Boolean =
+        sharedPreferences.getBoolean(is_balance_initialized_key, false)
+
+    override fun setInitialBalanceSet(b: Boolean) {
+        sharedPreferences.edit().putBoolean(is_balance_initialized_key, b).apply()
     }
 
 }

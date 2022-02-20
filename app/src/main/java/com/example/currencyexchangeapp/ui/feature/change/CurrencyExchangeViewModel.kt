@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.currencyexchangeapp.data.TAG
-import com.example.currencyexchangeapp.data.commission
 import com.example.currencyexchangeapp.data.defFreeTransactionsCount
 import com.example.currencyexchangeapp.data.defaultCashAmounts
 import com.example.currencyexchangeapp.data.entity.CashAmount
@@ -119,11 +118,14 @@ class CurrencyExchangeViewModel(
     }
 
     fun insertInitialValues() {
-        viewModelScope.launch {
-            withContext(Dispatchers.Default) {
-                mainUseCase.updateCashes(defaultCashAmounts)
-                mainUseCase.setFreeTransactions(defFreeTransactionsCount)
-                getSellCurrencies()
+        if (!mainUseCase.isInitialBalanceSet()) {
+            viewModelScope.launch {
+                withContext(Dispatchers.Default) {
+                    mainUseCase.updateCashes(defaultCashAmounts)
+                    mainUseCase.setFreeTransactions(defFreeTransactionsCount)
+                    getSellCurrencies()
+                    mainUseCase.setInitialBalanceSet(true)
+                }
             }
         }
 

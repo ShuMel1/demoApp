@@ -14,4 +14,6 @@ interface BalanceRepository {
     suspend fun insertAll(cashAmounts: List<CashAmount>)
     fun getRemainingFreeTransactionsCount():Int
     fun setRemainingFreeTransactionsCount(count: Int)
+    fun isInitialBalanceSet(): Boolean
+    fun setInitialBalanceSet(b: Boolean)
 }

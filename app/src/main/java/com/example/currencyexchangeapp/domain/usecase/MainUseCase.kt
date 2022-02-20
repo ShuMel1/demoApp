@@ -15,4 +15,6 @@ interface MainUseCase {
     fun setFreeTransactions(count: Int)
     fun decreaseRemainingFreeTransactionsCount()
     fun countCommission(cashAmount: CashAmount): Double
+    fun isInitialBalanceSet(): Boolean
+    fun setInitialBalanceSet(b: Boolean)
 }

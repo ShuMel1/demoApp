@@ -14,4 +14,6 @@ interface BalanceLocalDataSource {
     fun getCashAmount(currency: Currency): Flow<Double>
     fun getRemainingFreeTransactionsCount(): Int
     fun setRemainingFreeTransactionsCount(count: Int)
+    fun isInitialBalanceSet(): Boolean
+    fun setInitialBalanceSet(b: Boolean)
 }
