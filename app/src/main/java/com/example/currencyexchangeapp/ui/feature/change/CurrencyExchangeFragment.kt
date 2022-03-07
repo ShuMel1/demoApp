@@ -107,7 +107,12 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
                                 getExpectedBecomingBalance(),
                                 Currency.getCurrency(receiveCurrencySp.selectedItem.toString())
                             )
-                            viewModel.submitSale(sellCashAmount, receiveCashAmount)
+                            if (viewModel.checkIfCommissionFeeIsAvailable(sellCashAmount)) {
+                                viewModel.submitSale(sellCashAmount, receiveCashAmount)
+                            } else showDialog(
+                                getString(R.string.error),
+                                getString(R.string.invalid_amount)
+                            )
                         } else showDialog(
                             getString(R.string.error),
                             getString(R.string.invalid_amount)
@@ -179,7 +184,8 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
         viewModel.baseCurrAmount.value!! - viewBinding.sellEdit.text.toString().toDouble()
 
     private fun hasNoEmptyFields(): Boolean = viewBinding.sellEdit.text?.isNotEmpty() ?: false
-            && viewBinding.receiveEdit.text?.isNotEmpty() ?: false && viewBinding.sellEdit.text?.toString()?.toDouble() != 0.0
+            && viewBinding.receiveEdit.text?.isNotEmpty() ?: false && viewBinding.sellEdit.text?.toString()
+        ?.toDouble() != 0.0
 
     private fun onItemSelectedListener(selectedCurrency: MutableLiveData<String>) =
         object : AdapterView.OnItemSelectedListener {

@@ -5,7 +5,7 @@ import com.example.currencyexchangeapp.data.entity.CashAmount
 import com.example.currencyexchangeapp.data.entity.Currency
 
 const val base_url = BuildConfig.BASE_URL
-const val access_key = "3744d146baee82ec60b36fe92318bd03" // todo need to be updated every day
+const val access_key = "bc70f85b57fba58a540048af52f3a3a0" // todo need to be updated every day
 
 const val TAG = "CurrencyExchange"
 

@@ -42,7 +42,7 @@ class MainUseCaseImpl(private val repository: BalanceRepository) : MainUseCase {
     }
 
     override fun countCommission(cashAmount: CashAmount): Double =
-        cashAmount.amount.countPercent(commission).round(2)
+        cashAmount.amount.countPercent(commission)
 
     override fun isInitialBalanceSet(): Boolean =
         repository.isInitialBalanceSet()
