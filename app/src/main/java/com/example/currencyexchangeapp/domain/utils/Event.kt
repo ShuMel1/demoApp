@@ -1,4 +1,4 @@
-package com.example.currencyexchangeapp.domain.utils;
+package com.example.currencyexchangeapp.domain.utils
 
 import com.example.currencyexchangeapp.data.entity.LatestRatesEntity
 

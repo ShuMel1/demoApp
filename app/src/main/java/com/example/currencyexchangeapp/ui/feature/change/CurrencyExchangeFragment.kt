@@ -107,12 +107,7 @@ class CurrencyExchangeFragment : BaseFragment(R.layout.currency_change_fragment)
                                 getExpectedBecomingBalance(),
                                 Currency.getCurrency(receiveCurrencySp.selectedItem.toString())
                             )
-                            if (viewModel.checkIfCommissionFeeIsAvailable(sellCashAmount)) {
-                                viewModel.submitSale(sellCashAmount, receiveCashAmount)
-                            } else showDialog(
-                                getString(R.string.error),
-                                getString(R.string.invalid_amount)
-                            )
+                            viewModel.submitSale(sellCashAmount, receiveCashAmount)
                         } else showDialog(
                             getString(R.string.error),
                             getString(R.string.invalid_amount)

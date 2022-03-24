@@ -8,17 +8,6 @@ ext {
 
     // Dependencies
 
-    // Conductor
-
-    conductor = [
-            blAndroidX                 : 'com.bluelinelabs:conductor:3.1.4',
-            blViewPager                : 'com.bluelinelabs:conductor-viewpager:3.1.4',
-            blViewPager2               : 'com.bluelinelabs:conductor-viewpager2:3.1.4',
-            blAutoDispose              : 'com.bluelinelabs:conductor-autodispose:3.1.4',
-            blArchlifecycle            : 'com.bluelinelabs:conductor-archlifecycle:3.1.4'
-    ]
-
-
     // kotlin dependencies
     kotlinDependencies = [
             kotlinStdlib                : "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version",

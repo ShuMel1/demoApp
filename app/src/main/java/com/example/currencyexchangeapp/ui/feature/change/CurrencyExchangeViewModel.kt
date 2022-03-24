@@ -131,24 +131,18 @@ class CurrencyExchangeViewModel(
 
     }
 
-    fun checkIfCommissionFeeIsAvailable(sellCashAmount: CashAmount): Boolean {
-        val commissionAmount = mainUseCase.countCommission(sellCashAmount)
-        val baseAmount = baseCurrAmount.value ?: 0.0
-        return baseAmount - commissionAmount >= 0
-    }
-
     fun submitSale(sellCashAmount: CashAmount, receiveCashAmount: CashAmount) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 if (mainUseCase.hasFreeTransactionsCount()) {
                     mainUseCase.updateCashes(listOf(sellCashAmount, receiveCashAmount))
-                    commissionFee.postValue(Pair(0.0, sellCashAmount.currency.code))
+                    commissionFee.postValue(Pair(0.0, receiveCashAmount.currency.code))
                     mainUseCase.decreaseRemainingFreeTransactionsCount()
                 } else {
-                    val commissionAmount = mainUseCase.countCommission(sellCashAmount)
-                    sellCashAmount.amount = sellCashAmount.amount - commissionAmount
+                    val commissionAmount = mainUseCase.countCommission(receiveCashAmount)
+                    receiveCashAmount.amount = receiveCashAmount.amount - commissionAmount
                     mainUseCase.updateCashes(listOf(sellCashAmount, receiveCashAmount))
-                    commissionFee.postValue(Pair(commissionAmount, sellCashAmount.currency.code))
+                    commissionFee.postValue(Pair(commissionAmount, receiveCashAmount.currency.code))
                 }
             }
         }
