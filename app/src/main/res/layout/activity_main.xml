@@ -6,21 +6,29 @@
     android:layout_height="match_parent"
     tools:context=".ui.activity.MainActivity">
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/balance_layout"
-        android:name="com.example.currencyexchangeapp.ui.feature.balance.BalanceFragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/rate_layout"
+    <com.bluelinelabs.conductor.ChangeHandlerFrameLayout
+        android:id="@+id/controller_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:name="com.example.currencyexchangeapp.ui.feature.change.CurrencyExchangeFragment"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/balance_layout" />
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        />
+
+<!--    <androidx.fragment.app.FragmentContainerView-->
+<!--        android:id="@+id/balance_layout"-->
+<!--        android:name="com.example.currencyexchangeapp.ui.feature.balance.BalanceFragment"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--    <androidx.fragment.app.FragmentContainerView-->
+<!--        android:id="@+id/rate_layout"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:name="com.example.currencyexchangeapp.ui.feature.change.CurrencyExchangeFragment"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/balance_layout" />-->
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
