@@ -15,6 +15,7 @@ ext {
             kotlinCollection            : "androidx.collection:collection-ktx:",
     ]
 
+
     androidExtDependencies = [
             androidFragment             : "androidx.fragment:fragment-ktx:$fragment_ktx_version",
             androidLifecycle            : "androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha02",
